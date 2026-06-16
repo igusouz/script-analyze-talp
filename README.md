@@ -7,6 +7,12 @@ Script Python para analise quantitativa de resultados da plataforma TALP Multi-A
 - Python 3.11+
 - Dependencias em `requirements.txt`
 
+## Instalação
+
+```bash
+python -m pip install -r requirements.txt
+```
+
 ## Estrutura
 
 - `analyzer/parser.py`: leitura e normalizacao dos JSONs.
@@ -18,7 +24,7 @@ Script Python para analise quantitativa de resultados da plataforma TALP Multi-A
 - `analyzer/exporter.py`: exportacao de `summary.csv`, `statistics.csv`, `agent_report.csv` e `metric_report.csv`.
 - `analyzer/main.py`: pipeline principal e CLI.
 
-## Execucao
+## Execução
 
 ```bash
 python -m analyzer.main --input-dir ./input --output-dir ./output
