@@ -30,6 +30,29 @@ from analyzer.parser import AgentOutput, parse_json_folder
 from analyzer.ranking import apply_ranking, classify_row
 
 
+def _parse_bool(value: Any) -> bool | None:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return bool(value)
+    if isinstance(value, str):
+        lowered = value.strip().lower()
+        if lowered in {"true", "1", "yes", "y", "sim"}:
+            return True
+        if lowered in {"false", "0", "no", "n", "nao", "não"}:
+            return False
+    return None
+
+
+def _can_use_bdd(output: AgentOutput) -> bool:
+    metadata = output.compliance.get("metadata")
+    if isinstance(metadata, dict):
+        parsed = _parse_bool(metadata.get("can_continue_to_bdd"))
+        if parsed is not None:
+            return parsed
+    return True
+
+
 def _infer_tipo_us(story: str) -> str:
     lowered = story.lower()
     if "as a" in lowered and "i want" in lowered and "so that" in lowered:
@@ -42,7 +65,9 @@ def _infer_tipo_us(story: str) -> str:
 def _row_from_output(output: AgentOutput) -> dict[str, Any]:
     invest: INVESTMetrics = compute_invest_metrics(output.invest)
     compliance: ComplianceMetrics = compute_compliance_metrics(output.compliance)
-    bdd: BDDMetrics = compute_bdd_metrics(output.bdd)
+    bdd_enabled = _can_use_bdd(output)
+    bdd_payload = output.bdd if bdd_enabled else {}
+    bdd: BDDMetrics = compute_bdd_metrics(bdd_payload)
 
     composite: CompositeMetrics = compute_composite_metrics(
         invest_score_pct=invest.score_percent,
@@ -54,7 +79,7 @@ def _row_from_output(output: AgentOutput) -> dict[str, Any]:
         user_story=output.user_story,
         invest_data=output.invest,
         compliance_data=output.compliance,
-        bdd_data=output.bdd,
+        bdd_data=bdd_payload,
     )
 
     classificacao = classify_row(

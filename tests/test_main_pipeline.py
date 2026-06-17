@@ -50,3 +50,49 @@ def test_run_pipeline_generates_csvs(tmp_path: Path) -> None:
     assert (output_dir / "statistics.csv").exists()
     assert (output_dir / "agent_report.csv").exists()
     assert (output_dir / "metric_report.csv").exists()
+
+
+def test_run_pipeline_ignores_bdd_when_gate_is_false(tmp_path: Path) -> None:
+    input_dir = tmp_path / "inputs"
+    output_dir = tmp_path / "outputs"
+    input_dir.mkdir(parents=True)
+
+    payload = {
+        "user_story": "Dado atendimento com prescricao quando confirmar entao liberar",
+        "investAnalysis": {
+            "independent": {"status": "pass"},
+            "negotiable": {"status": "pass"},
+            "valuable": {"status": "pass"},
+            "estimable": {"status": "pass"},
+            "small": {"status": "pass"},
+            "testable": {"status": "pass"},
+        },
+        "complianceAnalysis": {
+            "status": "compliant",
+            "detectedRules": [{"matched": True}],
+            "requirements": [{"status": "satisfied"}],
+            "metadata": {"can_continue_to_bdd": False},
+        },
+        "bddAnalysis": {
+            "bddScenarios": [
+                {"scenarioType": "positive", "title": "cenario deveria ser ignorado"}
+            ],
+            "negativeCases": ["caso negativo que nao deve contar"],
+            "edgeCases": ["borda que nao deve contar"],
+            "ambiguities": ["ambiguidade que nao deve contar"],
+            "risks": ["risco que nao deve contar"],
+        },
+    }
+
+    (input_dir / "sample_gate_false.json").write_text(json.dumps(payload), encoding="utf-8")
+
+    summary_df, _, _, _ = run(input_dir=input_dir, output_dir=output_dir)
+
+    row = summary_df.iloc[0]
+    assert row["bdd_scenarios"] == 0
+    assert row["bdd_positive"] == 0
+    assert row["bdd_negative"] == 0
+    assert row["edge_cases"] == 0
+    assert row["ambiguidades"] == 0
+    assert row["riscos"] == 0
+    assert row["coverage"] == 0
