@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+import pandas as pd
+
 from analyzer.main import run
 
 
@@ -50,6 +52,9 @@ def test_run_pipeline_generates_csvs(tmp_path: Path) -> None:
     assert (output_dir / "statistics.csv").exists()
     assert (output_dir / "agent_report.csv").exists()
     assert (output_dir / "metric_report.csv").exists()
+    assert (output_dir / "invest_individual_report.csv").exists()
+    assert (output_dir / "compliance_individual_report.csv").exists()
+    assert (output_dir / "bdd_individual_report.csv").exists()
 
 
 def test_run_pipeline_ignores_bdd_when_gate_is_false(tmp_path: Path) -> None:
@@ -96,3 +101,11 @@ def test_run_pipeline_ignores_bdd_when_gate_is_false(tmp_path: Path) -> None:
     assert row["ambiguidades"] == 0
     assert row["riscos"] == 0
     assert row["coverage"] == 0
+
+    bdd_individual = (output_dir / "bdd_individual_report.csv").read_text(encoding="utf-8")
+    assert "sample_gate_false.json" in bdd_individual
+    assert ",False," in bdd_individual
+
+    bdd_individual_df = pd.read_csv(output_dir / "bdd_individual_report.csv")
+    assert "bdd_applicability_score" in bdd_individual_df.columns
+    assert "bdd_ac_coverage" in bdd_individual_df.columns

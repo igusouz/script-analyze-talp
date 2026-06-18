@@ -7,15 +7,24 @@ from typing import Any
 import pandas as pd
 
 from analyzer.agent_report import compute_agent_report
+from analyzer.bdd_applicability import compute_bdd_applicability, extract_acceptance_criteria
 from analyzer.metric_report import compute_metric_report
 from analyzer.exporter import (
+    export_bdd_individual_report,
+    export_compliance_individual_report,
     compute_statistics,
     export_agent_report,
+    export_invest_individual_report,
     export_metric_report,
     export_statistics,
     export_summary,
 )
 from analyzer.hallucination import compute_hallucination_metrics
+from analyzer.individual_reports import (
+    build_bdd_individual_report,
+    build_compliance_individual_report,
+    build_invest_individual_report,
+)
 from analyzer.metrics import (
     BDDMetrics,
     ComplianceMetrics,
@@ -68,6 +77,10 @@ def _row_from_output(output: AgentOutput) -> dict[str, Any]:
     bdd_enabled = _can_use_bdd(output)
     bdd_payload = output.bdd if bdd_enabled else {}
     bdd: BDDMetrics = compute_bdd_metrics(bdd_payload)
+    applicability = compute_bdd_applicability(
+        acceptance_criteria=extract_acceptance_criteria(output.raw),
+        bdd_payload=bdd_payload,
+    )
 
     composite: CompositeMetrics = compute_composite_metrics(
         invest_score_pct=invest.score_percent,
@@ -110,6 +123,13 @@ def _row_from_output(output: AgentOutput) -> dict[str, Any]:
         "riscos": bdd.risks,
         "refinement_questions": bdd.refinement_questions,
         "automation_suggestions": bdd.automation_suggestions,
+        "bdd_applicability_score": round(applicability.score_0_10, 4),
+        "bdd_applicability_level": applicability.level,
+        "bdd_ac_coverage": round(applicability.ac_coverage_ratio, 4),
+        "bdd_ac_covered": applicability.ac_covered,
+        "bdd_ac_total": applicability.ac_total,
+        "bdd_applicable_scenarios": applicability.scenarios_applicable,
+        "bdd_applicability_reasons": " | ".join(applicability.reasons),
         "coverage": round(composite.coverage, 4),
         "coverage_normalized": round(composite.coverage_normalized_0_10, 4),
         "hallucination_score": round(hallucination.score_0_10, 4),
@@ -175,6 +195,9 @@ def run(
         export_statistics(stats_df, output_dir)
         export_agent_report(empty_agent, output_dir)
         export_metric_report(empty_metric, output_dir)
+        export_invest_individual_report(pd.DataFrame(), output_dir)
+        export_compliance_individual_report(pd.DataFrame(), output_dir)
+        export_bdd_individual_report(pd.DataFrame(), output_dir)
         return df, stats_df, empty_agent, empty_metric
 
     ranked = apply_ranking(df)
@@ -204,6 +227,13 @@ def run(
             "bdd_negative",
             "refinement_questions",
             "automation_suggestions",
+            "bdd_applicability_score",
+            "bdd_applicability_level",
+            "bdd_ac_coverage",
+            "bdd_ac_covered",
+            "bdd_ac_total",
+            "bdd_applicable_scenarios",
+            "bdd_applicability_reasons",
             "coverage",
             "coverage_normalized",
             "hallucination_level",
@@ -214,11 +244,17 @@ def run(
     stats_df = compute_statistics(ranked)
     agent_df = compute_agent_report(ranked)
     metric_df = compute_metric_report(ranked)
+    invest_individual_df = build_invest_individual_report(outputs)
+    compliance_individual_df = build_compliance_individual_report(outputs)
+    bdd_individual_df = build_bdd_individual_report(outputs)
 
     export_summary(ranked, output_dir)
     export_statistics(stats_df, output_dir)
     export_agent_report(agent_df, output_dir)
     export_metric_report(metric_df, output_dir)
+    export_invest_individual_report(invest_individual_df, output_dir)
+    export_compliance_individual_report(compliance_individual_df, output_dir)
+    export_bdd_individual_report(bdd_individual_df, output_dir)
 
     return ranked, stats_df, agent_df, metric_df
 

@@ -56,3 +56,24 @@ def export_metric_report(metric_df: pd.DataFrame, output_dir: Path) -> Path:
     destination = output_dir / "metric_report.csv"
     metric_df.to_csv(destination, index=False)
     return destination
+
+
+def export_invest_individual_report(invest_df: pd.DataFrame, output_dir: Path) -> Path:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    destination = output_dir / "invest_individual_report.csv"
+    invest_df.to_csv(destination, index=False)
+    return destination
+
+
+def export_compliance_individual_report(compliance_df: pd.DataFrame, output_dir: Path) -> Path:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    destination = output_dir / "compliance_individual_report.csv"
+    compliance_df.to_csv(destination, index=False)
+    return destination
+
+
+def export_bdd_individual_report(bdd_df: pd.DataFrame, output_dir: Path) -> Path:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    destination = output_dir / "bdd_individual_report.csv"
+    bdd_df.to_csv(destination, index=False)
+    return destination

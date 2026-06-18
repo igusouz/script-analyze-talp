@@ -53,6 +53,7 @@ METRIC_SPECS: list[dict[str, Any]] = [
     {"name": "riscos",               "direction": -1, "max_range": 10,  "agent": "BDD"},
     {"name": "refinement_questions", "direction": -1, "max_range": 10,  "agent": "BDD"},
     {"name": "automation_suggestions","direction": 1, "max_range": 10,  "agent": "BDD"},
+    {"name": "bdd_applicability_score", "direction": 1, "max_range": 10, "agent": "BDD"},
     # Derived / Composite
     {"name": "coverage",             "direction":  1, "max_range": 40,  "agent": "Derivada"},
     {"name": "coverage_normalized",  "direction":  1, "max_range": 10,  "agent": "Derivada"},

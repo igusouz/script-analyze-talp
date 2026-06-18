@@ -21,7 +21,9 @@ python -m pip install -r requirements.txt
 - `analyzer/ranking.py`: classificacao final e ranking.
 - `analyzer/agent_report.py`: avaliacao consolidada por agente (INVEST, Compliance e BDD).
 - `analyzer/metric_report.py`: avaliacao estatistica por metrica e recomendacao de uso.
-- `analyzer/exporter.py`: exportacao de `summary.csv`, `statistics.csv`, `agent_report.csv` e `metric_report.csv`.
+- `analyzer/bdd_applicability.py`: avaliacao de aplicabilidade dos cenarios BDD em relacao aos criterios de aceite.
+- `analyzer/exporter.py`: exportacao de `summary.csv`, `statistics.csv`, `agent_report.csv`, `metric_report.csv` e relatorios individuais por agente.
+- `analyzer/individual_reports.py`: analise individual das saidas de INVEST, Compliance e BDD por arquivo.
 - `analyzer/main.py`: pipeline principal e CLI.
 
 ## Execução
@@ -44,6 +46,10 @@ pytest -q
 - `statistics.csv`: medias agregadas do lote.
 - `agent_report.csv`: score por agente do fluxo.
 - `metric_report.csv`: relevancia/recomendacao por metrica.
+- `invest_individual_report.csv`: analise individual da saida do agente INVEST por arquivo.
+- `compliance_individual_report.csv`: analise individual da saida do agente Compliance por arquivo.
+- `bdd_individual_report.csv`: analise individual da saida do agente BDD por arquivo.
+	- inclui score de aplicabilidade dos cenarios BDD (`bdd_applicability_score`) com cobertura de criterios de aceite.
 
 ## Campos principais em summary.csv
 
@@ -71,6 +77,13 @@ pytest -q
 - bdd_negative
 - refinement_questions
 - automation_suggestions
+- bdd_applicability_score
+- bdd_applicability_level
+- bdd_ac_coverage
+- bdd_ac_covered
+- bdd_ac_total
+- bdd_applicable_scenarios
+- bdd_applicability_reasons
 - coverage
 - coverage_normalized
 - hallucination_level
